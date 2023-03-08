@@ -1,0 +1,52 @@
+# for reading .xls files, use pandas
+import pandas as pd
+# for searching files, use glob
+import glob
+# for making directory, use os
+import os
+# for plotting, use matplotlib
+import matplotlib.pyplot as plt
+
+# Get .xls files in target directory
+path = 'data/*.xls'
+files = []
+files = glob.glob(path)
+
+
+# read all .xls files into a dataframe
+data = dict()
+for f in files:
+    # read each file into a dataframe
+    data[f.replace('data/','').replace('.xls','')] = pd.read_excel(f, sheet_name='Output_Data_test', header=4, index_col=0,)
+
+# return true if theres 'fig' folder
+tf = os.path.isdir('fig')
+print(tf)
+# if theres no 'fig' folder, make it
+if tf == False:
+    os.mkdir('fig')
+
+# plot each dataframe
+## name graphs by the name of the dataframe keys
+keys = data.keys()
+print(keys)
+for key in keys:
+    fig = plt.figure(figsize=(5,3), dpi=300)
+    ax1 = fig.add_subplot(111)
+    ax2 = ax1.twinx()
+    ax1.set_xlim(0,10000)
+    ax1.set_ylim(0,1.0)
+    ax2.set_ylim(0,100)
+    ax1.grid(True, which='major', axis='y', color='gray', linestyle='--', linewidth=0.5)
+    ax1.set_xlabel("繰り返し数")
+    ax1.set_ylabel("摩擦係数[-]")
+    ax2.set_ylabel(r"振幅[$\mu$m], 湿度[%]")
+    ax1.set_title(key)
+    ax2.scatter(data[key].index, data[key]['振幅，μm'], s=0.1, label='相対振幅', c="#90B34F")
+    ax2.scatter(data[key].index, data[key]['相対湿度'], s=0.1, label='相対湿度' , c="#4676B5")
+    ax1.scatter(data[key].index, data[key]['摩擦係数'], s=0.1, label='摩擦係数' , c="#B84644")
+    ax1.legend(markerscale = 5, frameon = False, loc = "upper right")
+    ax2.legend(markerscale = 5, frameon = False, loc = "upper right", bbox_to_anchor = (1 ,0.9))
+    plt.savefig('fig/' + key + '.pdf', bbox_inches='tight')
+
+
